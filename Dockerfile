@@ -1,15 +1,7 @@
-# Stage 1: Build Frontend Assets
-FROM node:20-alpine AS node_builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-# Stage 2: Production PHP + Nginx Environment
+# Production PHP 8.3 + Nginx + Node Environment for Laravel 12
 FROM php:8.3-fpm-alpine
 
-# Install system packages & dependencies
+# Install system packages, Nginx, Node.js & NPM
 RUN apk add --no-cache \
     nginx \
     sqlite \
@@ -20,9 +12,11 @@ RUN apk add --no-cache \
     unzip \
     git \
     curl \
+    nodejs \
+    npm \
     oniguruma-dev
 
-# Install PHP extensions for Laravel (PostgreSQL, SQLite, PDO, Zip, BCMath, Opcache)
+# Install PHP extensions for Laravel (PostgreSQL, SQLite, MySQL, PDO, Zip, BCMath, Opcache)
 RUN docker-php-ext-install \
     pdo \
     pdo_mysql \
@@ -42,11 +36,11 @@ WORKDIR /var/www
 # Copy application files
 COPY . .
 
-# Copy built frontend assets from Stage 1
-COPY --from=node_builder /app/public/build ./public/build
-
-# Install production PHP dependencies
+# Install PHP dependencies first (so PHP and artisan are ready for Vite)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Install NPM dependencies and build frontend assets with Vite
+RUN npm ci && npm run build
 
 # Copy Nginx config & Entrypoint script
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf

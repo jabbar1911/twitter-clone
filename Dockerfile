@@ -1,5 +1,5 @@
-# Production PHP 8.3 + Nginx + Node Environment for Laravel 12
-FROM php:8.3-fpm-alpine
+# Production PHP 8.4 + Nginx + Node Environment for Laravel 12
+FROM php:8.4-fpm-alpine
 
 # Install system packages, Nginx, Node.js & NPM
 RUN apk add --no-cache \

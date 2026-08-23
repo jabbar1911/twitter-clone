@@ -36,6 +36,10 @@ WORKDIR /var/www
 # Copy application files
 COPY . .
 
+# Ensure .env and database file exist during build
+RUN if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi && \
+    mkdir -p database && touch database/database.sqlite
+
 # Install PHP dependencies first (so PHP and artisan are ready for Vite)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
